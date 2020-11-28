@@ -1,0 +1,39 @@
+import pandas as pd
+df_sentiment = pd.read_csv('C:\dataset\imdb_labelled.txt',sep='\t',names=['comment','label'])
+df_sentiment.head(10)
+df_sentiment.describe()
+df_sentiment.info()
+df_sentiment.groupby('label').describe()
+df_sentiment['length'] =df_sentiment['comment'].apply(len)
+df_sentiment.head()
+df_sentiment[df_sentiment['length']>50]['comment'].iloc[0]
+from sklearn.feature_extraction.text import CountVectorizer
+vectorizer = CountVectorizer()
+def message_text_process(mess):
+    # Check characters to see if there are punctuations
+    no_punctuation = [char for char in mess if char not in string.punctuation]
+    # now form the sentence.
+    no_punctuation = ''.join(no_punctuation)
+    # Now eliminate any stopwords
+    return [word for word in no_punctuation.split() if word.lower() not in stopwords.words('english')]
+    import string
+from nltk.corpus import stopwords
+bag_of_words = CountVectorizer(analyzer=message_text_process).fit(df_sentiment['comment'])
+comment_bagofwords = bag_of_words.transform(df_sentiment['comment'])
+from sklearn.feature_extraction.text import TfidfTransformer
+tfidf_transformer = TfidfTransformer().fit(comment_bagofwords)
+comment_tfidf = tfidf_transformer.transform(comment_bagofwords)
+print comment_tfidf.shape
+from sklearn.naive_bayes import MultinomialNB
+sentiment_detection_model = MultinomialNB().fit(comment_tfidf,df_sentiment['label'])
+comment = df_sentiment['comment'][4]
+bag_of_words_for_comment = bag_of_words.transform([comment])
+tfidf = tfidf_transformer.transform(bag_of_words_for_comment)
+
+print 'predicted sentiment label ', sentiment_detection_model.predict(tfidf)[0]
+print 'expected sentiment label', df_sentiment.label[4]
+bag_of_words_for_comment = bag_of_words.transform([comment])
+tfidf = tfidf_transformer.transform(bag_of_words_for_comment)
+
+print 'predicted sentiment label ', sentiment_detection_model.predict(tfidf)[0]
+print 'expected sentiment label', df_sentiment.label[1]
