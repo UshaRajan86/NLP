@@ -1,0 +1,33 @@
+import pandas as pd
+import string
+from nltk.corpus import stopwords
+df = pd.read_csv(r'C:\Users\ushar\OneDrive\Desktop\SpamCollection',sep='\t',names=['Response','Messages'])
+df.head()
+df.describe()
+df['Response']
+df.groupby('Response').describe()
+df['Length_Messages'] = df['Messages'].apply(len)
+df
+def fn_stopmessage(message):
+    p1 = [char for char in message if char not in string.punctuation]
+    p1 = ''.join(p1)
+    return [word for word in p1.split() if word.lower() not in stopwords.words('english')]
+df['Messages'].head(5).apply(fn_stopmessage)
+from sklearn.feature_extraction.text import CountVectorizer
+Bagofwords = CountVectorizer(analyzer=fn_stopmessage).fit(df['Messages'])
+print(len(Bagofwords.vocabulary_))
+bw = Bagofwords.transform(df['Messages'])
+from sklearn.feature_extraction.text import TfidfTransformer
+tfidf = TfidfTransformer().fit(bw)
+from sklearn.naive_bayes import MultinomialNB
+spam_detect = MultinomialNB().fit(msg_tfidf,df['Response'])
+msg = df['Messages'][4]
+bgs_words_msgs = Bagofwords.transform([msg])
+tf1 = tfidf.transform(bgs_words_msgs)
+print('Predicted',spam_detect.predict(tf1)[0])
+print('Expected',df.Response[4])
+msg = df['Messages'][2]
+bgs_words_msgs = Bagofwords.transform([msg])
+tf1 = tfidf.transform(bgs_words_msgs)
+print('Predicted',spam_detect.predict(tf1)[0])
+print('Expected',df.Response[2])
